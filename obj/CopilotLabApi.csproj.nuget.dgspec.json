@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\PW\\V semestr\\ProgrApMobWeb\\CopilotLab\\CopilotLabApi\\CopilotLabApi.csproj": {}
+    "/home/runner/work/CopilotLabApi/CopilotLabApi/CopilotLabApi.csproj": {}
   },
   "projects": {
-    "D:\\PW\\V semestr\\ProgrApMobWeb\\CopilotLab\\CopilotLabApi\\CopilotLabApi.csproj": {
+    "/home/runner/work/CopilotLabApi/CopilotLabApi/CopilotLabApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\PW\\V semestr\\ProgrApMobWeb\\CopilotLab\\CopilotLabApi\\CopilotLabApi.csproj",
+        "projectUniqueName": "/home/runner/work/CopilotLabApi/CopilotLabApi/CopilotLabApi.csproj",
         "projectName": "CopilotLabApi",
-        "projectPath": "D:\\PW\\V semestr\\ProgrApMobWeb\\CopilotLab\\CopilotLabApi\\CopilotLabApi.csproj",
-        "packagesPath": "C:\\Users\\HP VICTUS\\.nuget\\packages\\",
-        "outputPath": "D:\\PW\\V semestr\\ProgrApMobWeb\\CopilotLab\\CopilotLabApi\\obj\\",
+        "projectPath": "/home/runner/work/CopilotLabApi/CopilotLabApi/CopilotLabApi.csproj",
+        "packagesPath": "/home/runner/.nuget/packages/",
+        "outputPath": "/home/runner/work/CopilotLabApi/CopilotLabApi/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\HP VICTUS\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/runner/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -68,7 +68,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
