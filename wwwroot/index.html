@@ -112,6 +112,41 @@
   .spinner{ width:16px; height:16px; border-radius:50%; background: rgba(255,255,255,0.18); border:2px solid rgba(255,255,255,0.28); border-top-color: rgba(71,100,137,0.95); box-shadow: 0 2px 8px rgba(12,18,30,0.12); animation:spin 1s linear infinite }
     @keyframes spin{ to{ transform: rotate(360deg) } }
 
+    /* Skeleton loading styles */
+    .skeleton-container{ display:flex; flex-direction:column; gap:10px; }
+    .skeleton-item{ 
+      display:flex; 
+      align-items:center; 
+      justify-content:space-between; 
+      padding:12px; 
+      border-radius:12px; 
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); 
+      border:1px solid rgba(255,255,255,0.03); 
+    }
+    .skeleton-line{
+      height:14px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.08) 100%);
+      background-size: 200% 100%;
+      border-radius:6px;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+    .skeleton-line.title{ width:140px; margin-bottom:8px; height:16px; }
+    .skeleton-line.subtitle{ width:200px; height:12px; }
+    .skeleton-buttons{ display:flex; gap:6px; }
+    .skeleton-button{
+      width:60px;
+      height:32px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.08) 100%);
+      background-size: 200% 100%;
+      border-radius:8px;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+    @keyframes shimmer{
+      0%{ background-position: 200% 0; }
+      100%{ background-position: -200% 0; }
+    }
+    .fade-in{ animation: fadeIn 400ms ease forwards; }
+
     /* Toast */
     .toast{ position:fixed; right:20px; bottom:20px; background: linear-gradient(180deg, rgba(7,17,51,0.72), rgba(7,17,51,0.6)); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 30px rgba(2,6,23,0.6) }
 
@@ -279,19 +314,50 @@
       }catch(err){ throw err }
     }
 
+    /* Skeleton loading helper */
+    function createSkeleton(count = 3){
+      const container = document.createElement('div');
+      container.className = 'skeleton-container';
+      for(let i = 0; i < count; i++){
+        const item = document.createElement('div');
+        item.className = 'skeleton-item';
+        const meta = document.createElement('div');
+        meta.innerHTML = '<div class="skeleton-line title"></div><div class="skeleton-line subtitle"></div>';
+        const buttons = document.createElement('div');
+        buttons.className = 'skeleton-buttons';
+        buttons.innerHTML = '<div class="skeleton-button"></div><div class="skeleton-button"></div>';
+        item.appendChild(meta);
+        item.appendChild(buttons);
+        container.appendChild(item);
+      }
+      return container;
+    }
+
     /* Users */
     const usersList = document.getElementById('users-list');
     const usersCount = document.getElementById('users-count');
     const usersLoading = document.getElementById('users-loading');
 
     async function loadUsers(){
-      usersLoading.style.display='inline-block';
+      // Show skeleton only if list is empty (initial load)
+      const isInitialLoad = usersList.children.length === 0;
+      if(isInitialLoad){
+        usersList.innerHTML = '';
+        usersList.appendChild(createSkeleton(3));
+      } else {
+        usersLoading.style.display='inline-block';
+      }
+      
       try{
         const users = await apiFetch('/api/users');
+        
+        // Small delay for smooth transition effect
+        if(isInitialLoad) await new Promise(r => setTimeout(r, 300));
+        
         usersList.innerHTML = '';
         usersCount.textContent = '(' + users.length + ')';
         users.forEach(u => {
-          const el = document.createElement('div'); el.className='item';
+          const el = document.createElement('div'); el.className='item fade-in';
           el.innerHTML = `<div class="meta"><strong>${escapeHtml(u.name)}</strong><span class="small">${escapeHtml(u.email)} • #${u.id}</span></div>`;
           const actions = document.createElement('div'); actions.className='row';
           const edit = document.createElement('button'); edit.className='btn ghost'; edit.textContent='Edit';
@@ -338,12 +404,22 @@
     const productsList = document.getElementById('products-list');
     const productsCount = document.getElementById('products-count');
     async function loadProducts(){
-      document.getElementById('products-loading').style.display='inline-block';
+      const isInitialLoad = productsList.children.length === 0;
+      if(isInitialLoad){
+        productsList.innerHTML = '';
+        productsList.appendChild(createSkeleton(3));
+      } else {
+        document.getElementById('products-loading').style.display='inline-block';
+      }
+      
       try{
         const products = await apiFetch('/api/products');
+        
+        if(isInitialLoad) await new Promise(r => setTimeout(r, 300));
+        
         productsList.innerHTML=''; productsCount.textContent='('+products.length+')';
         products.forEach(p=>{
-          const el=document.createElement('div'); el.className='item';
+          const el=document.createElement('div'); el.className='item fade-in';
           el.innerHTML=`<div class="meta"><strong>${escapeHtml(p.name)}</strong><span class="small">${p.price} • #${p.id}</span></div>`;
           const actions = document.createElement('div'); actions.className='row';
           const edit=document.createElement('button'); edit.className='btn ghost'; edit.textContent='Edit';
@@ -384,13 +460,23 @@
     /* Orders */
     const ordersList = document.getElementById('orders-list');
     async function loadOrders(){
-      document.getElementById('orders-loading').style.display='inline-block';
+      const isInitialLoad = ordersList.children.length === 0;
+      if(isInitialLoad){
+        ordersList.innerHTML = '';
+        ordersList.appendChild(createSkeleton(3));
+      } else {
+        document.getElementById('orders-loading').style.display='inline-block';
+      }
+      
       try{
         const orders = await apiFetch('/api/orders');
+        
+        if(isInitialLoad) await new Promise(r => setTimeout(r, 300));
+        
         ordersList.innerHTML='';
         document.getElementById('orders-count').textContent='('+orders.length+')';
         orders.forEach(o=>{
-          const el=document.createElement('div'); el.className='item';
+          const el=document.createElement('div'); el.className='item fade-in';
           el.innerHTML=`<div class="meta"><strong>${escapeHtml(o.productName || 'Order')}</strong><span class="small">User #${o.userId} • ${new Date(o.orderDate).toLocaleString()} • ${o.quantity} × ${o.totalPrice}</span></div>`;
           ordersList.appendChild(el);
         })
@@ -441,7 +527,34 @@
 
     /* Categories (may not exist on server) */
     const categoriesList = document.getElementById('categories-list');
-    async function loadCategories(){ document.getElementById('categories-loading').style.display='inline-block'; categoriesList.innerHTML=''; try{ const cats = await apiFetch('/api/categories'); categoriesList.innerHTML=''; document.getElementById('categories-count').textContent='('+cats.length+')'; cats.forEach(c=>{ const el=document.createElement('div'); el.className='item'; el.innerHTML=`<div class="meta"><strong>${escapeHtml(c.name)}</strong><span class="small">#${c.id}</span></div>`; categoriesList.appendChild(el) }) }catch(e){ categoriesList.innerHTML='<div class="small muted">No categories endpoint or failed to load.</div>'; console.warn('Categories load failed', e) } document.getElementById('categories-loading').style.display='none' }
+    async function loadCategories(){ 
+      const isInitialLoad = categoriesList.children.length === 0;
+      if(isInitialLoad){
+        categoriesList.innerHTML = '';
+        categoriesList.appendChild(createSkeleton(2));
+      } else {
+        document.getElementById('categories-loading').style.display='inline-block';
+      }
+      
+      try{ 
+        const cats = await apiFetch('/api/categories'); 
+        
+        if(isInitialLoad) await new Promise(r => setTimeout(r, 300));
+        
+        categoriesList.innerHTML=''; 
+        document.getElementById('categories-count').textContent='('+cats.length+')'; 
+        cats.forEach(c=>{ 
+          const el=document.createElement('div'); 
+          el.className='item fade-in'; 
+          el.innerHTML=`<div class="meta"><strong>${escapeHtml(c.name)}</strong><span class="small">#${c.id}</span></div>`; 
+          categoriesList.appendChild(el) 
+        }) 
+      }catch(e){ 
+        categoriesList.innerHTML='<div class="small muted">No categories endpoint or failed to load.</div>'; 
+        console.warn('Categories load failed', e) 
+      } 
+      document.getElementById('categories-loading').style.display='none' 
+    }
 
     document.getElementById('category-form').addEventListener('submit', async (ev)=>{ ev.preventDefault(); const name = document.getElementById('category-name').value.trim(); const err = document.getElementById('category-form-error'); err.textContent=''; const loading = document.getElementById('category-form-loading'); loading.style.display='inline-block'; try{ if(!name) throw {message:'Name required'}; await apiFetch('/api/categories', {method:'POST', body:{name}}); showToast('Category added'); document.getElementById('category-form').reset(); loadCategories(); }catch(e){ console.error(e); err.textContent = e.data?.title || e.message || 'Request failed' } loading.style.display='none' })
 
