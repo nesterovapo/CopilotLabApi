@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>API Tester — CopilotLabApi</title>
+  <style>
+    :root{
+      --max-width:1100px;
+      --radius:20px;
+      --gap:18px;
+      --heading: #1a1a2e; /* dark navy */
+      --text: #2d3748; /* dark gray */
+      --muted: rgba(45,55,72,0.75);
+      --accent: rgba(71,100,137,0.95);
+      --glass-1: rgba(255,255,255,0.25);
+      --glass-2: rgba(255,255,255,0.18);
+      --glass-border: rgba(255,255,255,0.4);
+      --success: #16a34a;
+      --danger: #ef4444;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+
+    /* Animated gradient background (soft movement) */
+    html,body{height:100%;}
+    body{
+      margin:0;
+      display:flex;align-items:flex-start;justify-content:center;padding:32px;
+      color: var(--text);
+      /* medium-light pastel gradient: blue -> cream -> mint green */
+      background: linear-gradient(120deg, #476489 0%, #C3AC8D 50%, #B1C1B4 100%);
+      background-size: 300% 300%;
+      animation: gradientShift 18s ease infinite;
+      -webkit-font-smoothing:antialiased;
+    }
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    .container{width:100%;max-width:var(--max-width)}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;opacity:0;animation:fadeIn 400ms 120ms forwards}
+    h1{font-size:20px;margin:0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+
+    /* Cards - glassmorphism */
+    .card{
+      background: rgba(255,255,255,0.25);
+      border-radius: var(--radius);
+      padding:20px;
+      border: 2px solid var(--glass-border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      transition: transform 300ms ease, box-shadow 300ms ease, opacity 300ms ease;
+      opacity:0; animation:fadeIn 420ms forwards;
+    }
+    .card h2{margin:0 0 12px 0;font-size:16px}
+
+    /* Text colors for contrast */
+    h1, h2 { color: var(--heading); }
+    body, p, label, .small, .muted { color: var(--text); }
+
+    /* Controls and layout */
+    .controls{display:flex;gap:10px;flex-wrap:wrap}
+    .row{display:flex;gap:8px;align-items:center}
+
+    /* Buttons with glass effect */
+    .btn{
+      background: rgba(255,255,255,0.3);
+      color: var(--heading);
+      padding:10px 14px;
+      border-radius:12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      cursor:pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 6px 14px rgba(12,18,30,0.12);
+      transition: transform 300ms ease, opacity 300ms ease, box-shadow 300ms ease, background-color 300ms ease;
+    }
+    .btn:hover{ background: rgba(255,255,255,0.5); opacity:1; transform: translateY(-4px) scale(1.01); box-shadow: 0 10px 24px rgba(12,18,30,0.18) }
+    .btn:active{ transform: translateY(-1px) scale(0.995); }
+    .btn.ghost{ background: transparent; border:1px solid rgba(255,255,255,0.12); color:var(--heading); }
+
+    .muted{ color: rgba(230,240,255,0.8); font-size:13px }
+
+    form{ display:flex; flex-direction:column; gap:10px }
+
+    /* Inputs with glass look */
+    input[type=text], input[type=email], input[type=number], textarea, select{
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.22);
+      padding:12px;border-radius:12px;color:var(--text);
+      outline: none; backdrop-filter: blur(8px);
+      transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
+    }
+    input::placeholder, textarea::placeholder{ color: rgba(45,55,72,0.45); }
+    input:focus, textarea:focus, select:focus{
+      box-shadow: 0 8px 20px rgba(71,100,137,0.12), 0 0 12px rgba(71,100,137,0.06) inset;
+      border-color: rgba(255,255,255,0.6);
+      transform: translateY(-1px);
+    }
+
+    .list{ display:flex; flex-direction:column; gap:10px; max-height:320px; overflow:auto; padding-right:6px }
+    .item{ display:flex; align-items:center; justify-content:space-between; padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); }
+    .item .meta{ display:flex; flex-direction:column }
+    .small{ font-size:12px; color: rgba(230,240,255,0.8) }
+
+    /* Spinner with glass effect */
+  .spinner{ width:16px; height:16px; border-radius:50%; background: rgba(255,255,255,0.18); border:2px solid rgba(255,255,255,0.28); border-top-color: rgba(71,100,137,0.95); box-shadow: 0 2px 8px rgba(12,18,30,0.12); animation:spin 1s linear infinite }
+    @keyframes spin{ to{ transform: rotate(360deg) } }
+
+    /* Toast */
+    .toast{ position:fixed; right:20px; bottom:20px; background: linear-gradient(180deg, rgba(7,17,51,0.72), rgba(7,17,51,0.6)); padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 30px rgba(2,6,23,0.6) }
+
+    .error{ color: var(--danger) }
+    .success{ color: var(--success) }
+
+    footer{ margin-top:18px; color: rgba(230,240,255,0.75); font-size:13px; text-align:center }
+
+    /* Fade-in animation for cards/elements */
+    @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px); } to{ opacity:1; transform: translateY(0); } }
+
+    /* Responsiveness tweaks */
+    @media (max-width: 600px){
+      body{ padding:18px }
+      .card{ padding:14px }
+      .btn{ padding:8px 10px }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>CopilotLabApi — API Tester</h1>
+      <div class="muted">Backend: http://localhost:5215 • Minimal API tester</div>
+    </header>
+
+    <div class="grid">
+      <!-- Users -->
+      <section class="card" id="users-card">
+        <h2>Users <span class="small muted" id="users-count"></span></h2>
+        <div class="row controls">
+          <button class="btn" id="refresh-users">Refresh</button>
+          <div id="users-loading" style="display:none" class="spinner" aria-hidden="true"></div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:12px;flex-direction:column">
+          <div class="list" id="users-list"></div>
+
+          <form id="user-form">
+            <input type="hidden" id="user-id" />
+            <input id="user-name" type="text" placeholder="Name" required />
+            <input id="user-email" type="email" placeholder="Email" required />
+            <div class="row">
+              <button class="btn" type="submit" id="user-submit">Save</button>
+              <button class="btn ghost" type="button" id="user-cancel">Cancel</button>
+              <div id="user-form-loading" style="display:none" class="spinner"></div>
+            </div>
+            <div id="user-form-error" class="error small"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Products -->
+      <section class="card" id="products-card">
+        <h2>Products <span class="small muted" id="products-count"></span></h2>
+        <div class="row controls">
+          <button class="btn" id="refresh-products">Refresh</button>
+          <div id="products-loading" style="display:none" class="spinner"></div>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:12px;flex-direction:column">
+          <div class="list" id="products-list"></div>
+
+          <form id="product-form">
+            <input type="hidden" id="product-id" />
+            <input id="product-name" type="text" placeholder="Product name" required />
+            <input id="product-price" type="number" step="0.01" placeholder="Price" required />
+            <div class="row">
+              <button class="btn" type="submit" id="product-submit">Save</button>
+              <button class="btn ghost" type="button" id="product-cancel">Cancel</button>
+              <div id="product-form-loading" style="display:none" class="spinner"></div>
+            </div>
+            <div id="product-form-error" class="error small"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Orders -->
+      <section class="card" id="orders-card">
+        <h2>Orders <span class="small muted" id="orders-count"></span></h2>
+        <div class="row controls">
+          <button class="btn" id="refresh-orders">Refresh</button>
+          <div id="orders-loading" style="display:none" class="spinner"></div>
+        </div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+          <form id="orders-form" style="display:flex;flex-direction:column;gap:8px">
+            <input id="order-userid" type="number" placeholder="UserId (number)" required />
+            <input id="order-productname" type="text" placeholder="Product name" required />
+            <input id="order-quantity" type="number" placeholder="Quantity" min="1" required />
+            <input id="order-totalprice" type="number" step="0.01" placeholder="Total price" min="0" required />
+            <div class="row">
+              <button class="btn" type="submit" id="order-submit">Add Order</button>
+              <div id="order-form-loading" style="display:none" class="spinner"></div>
+            </div>
+            <div id="order-form-error" class="error small"></div>
+          </form>
+
+          <div class="list" id="orders-list"></div>
+        </div>
+      </section>
+
+      <!-- Categories -->
+      <section class="card" id="categories-card">
+        <h2>Categories <span class="small muted" id="categories-count"></span></h2>
+        <div class="row controls">
+          <button class="btn" id="refresh-categories">Refresh</button>
+          <div id="categories-loading" style="display:none" class="spinner"></div>
+        </div>
+        <div class="list" id="categories-list" style="margin-top:12px"></div>
+
+        <form id="category-form" style="margin-top:12px">
+          <input id="category-name" type="text" placeholder="Category name" required />
+          <div class="row">
+            <button class="btn" type="submit" id="category-submit">Add Category</button>
+            <div id="category-form-loading" style="display:none" class="spinner"></div>
+          </div>
+          <div id="category-form-error" class="error small"></div>
+        </form>
+      </section>
+
+      <!-- Contact -->
+      <section class="card" id="contact-card">
+        <h2>Contact</h2>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:10px">
+          <form id="contact-form">
+            <input id="contact-name" type="text" placeholder="Your name" required />
+            <input id="contact-email" type="email" placeholder="Your email" required />
+            <input id="contact-subject" type="text" placeholder="Subject" required />
+            <textarea id="contact-message" placeholder="Message" rows="4" required style="resize:vertical"></textarea>
+            <div class="row">
+              <button class="btn" type="submit" id="contact-submit">Send Message</button>
+              <div id="contact-form-loading" style="display:none" class="spinner"></div>
+            </div>
+            <div id="contact-form-error" class="error small"></div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <footer>Built for testing CopilotLabApi • calls backend on <strong>http://localhost:5215</strong></footer>
+
+    <div id="toast" class="toast" style="display:none"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:5215';
+
+    /* Generic helpers */
+    function showToast(html, timeout = 4000){
+      const t = document.getElementById('toast'); t.innerHTML = html; t.style.display = 'block';
+      clearTimeout(t._h);
+      t._h = setTimeout(()=> t.style.display='none', timeout);
+    }
+
+    async function apiFetch(path, {method='GET', body=null}={}){
+      const opts = {method, headers: { 'Content-Type': 'application/json' }};
+      if (body) opts.body = JSON.stringify(body);
+      try{
+        const res = await fetch(API_BASE + path, opts);
+        const text = await res.text();
+        let data = null;
+        try{ data = text ? JSON.parse(text) : null } catch(e){ data = text }
+        if (!res.ok) throw { status: res.status, data };
+        return data;
+      }catch(err){ throw err }
+    }
+
+    /* Users */
+    const usersList = document.getElementById('users-list');
+    const usersCount = document.getElementById('users-count');
+    const usersLoading = document.getElementById('users-loading');
+
+    async function loadUsers(){
+      usersLoading.style.display='inline-block';
+      try{
+        const users = await apiFetch('/api/users');
+        usersList.innerHTML = '';
+        usersCount.textContent = '(' + users.length + ')';
+        users.forEach(u => {
+          const el = document.createElement('div'); el.className='item';
+          el.innerHTML = `<div class="meta"><strong>${escapeHtml(u.name)}</strong><span class="small">${escapeHtml(u.email)} • #${u.id}</span></div>`;
+          const actions = document.createElement('div'); actions.className='row';
+          const edit = document.createElement('button'); edit.className='btn ghost'; edit.textContent='Edit';
+          const del = document.createElement('button'); del.className='btn ghost'; del.textContent='Delete';
+          edit.onclick = ()=> fillUserForm(u);
+          del.onclick = async ()=>{ if(!confirm('Delete user?')) return; try{ await apiFetch('/api/users/'+u.id, {method:'DELETE'}); showToast('User deleted'); loadUsers(); }catch(e){ showToast('Delete failed: '+(e.data?.title||e.status),4000) }};
+          actions.appendChild(edit); actions.appendChild(del); el.appendChild(actions);
+          usersList.appendChild(el);
+        })
+      }catch(e){ usersList.innerHTML = '<div class="small error">Failed to load users</div>'; console.error(e); }
+      usersLoading.style.display='none';
+    }
+
+    function fillUserForm(u){
+      document.getElementById('user-id').value = u.id;
+      document.getElementById('user-name').value = u.name;
+      document.getElementById('user-email').value = u.email;
+      document.getElementById('user-submit').textContent = 'Update';
+    }
+
+    document.getElementById('user-cancel').addEventListener('click', ()=>{ document.getElementById('user-form').reset(); document.getElementById('user-id').value=''; document.getElementById('user-submit').textContent='Save' })
+
+    document.getElementById('user-form').addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      const id = document.getElementById('user-id').value;
+      const name = document.getElementById('user-name').value.trim();
+      const email = document.getElementById('user-email').value.trim();
+      const errorEl = document.getElementById('user-form-error'); errorEl.textContent='';
+      const loading = document.getElementById('user-form-loading'); loading.style.display='inline-block';
+      try{
+        if (!name || !email) throw {message:'Name and email required'};
+        const body = { name, email };
+        if (!id){ await apiFetch('/api/users', {method:'POST', body}) ; showToast('User created',3000) }
+        else { await apiFetch('/api/users/'+id, {method:'PUT', body}); showToast('User updated',3000) }
+        document.getElementById('user-form').reset(); document.getElementById('user-id').value=''; document.getElementById('user-submit').textContent='Save';
+        loadUsers();
+      }catch(err){ console.error(err); errorEl.textContent = err.data?.title || err.message || 'Request failed'; }
+      loading.style.display='none';
+    })
+
+    document.getElementById('refresh-users').addEventListener('click', loadUsers);
+
+    /* Products */
+    const productsList = document.getElementById('products-list');
+    const productsCount = document.getElementById('products-count');
+    async function loadProducts(){
+      document.getElementById('products-loading').style.display='inline-block';
+      try{
+        const products = await apiFetch('/api/products');
+        productsList.innerHTML=''; productsCount.textContent='('+products.length+')';
+        products.forEach(p=>{
+          const el=document.createElement('div'); el.className='item';
+          el.innerHTML=`<div class="meta"><strong>${escapeHtml(p.name)}</strong><span class="small">${p.price} • #${p.id}</span></div>`;
+          const actions = document.createElement('div'); actions.className='row';
+          const edit=document.createElement('button'); edit.className='btn ghost'; edit.textContent='Edit';
+          const del=document.createElement('button'); del.className='btn ghost'; del.textContent='Delete';
+          edit.onclick=()=> fillProductForm(p);
+          del.onclick=async ()=>{ if(!confirm('Delete product?')) return; try{ await apiFetch('/api/products/'+p.id, {method:'DELETE'}); showToast('Product deleted'); loadProducts(); }catch(e){ showToast('Delete failed',4000)} };
+          actions.appendChild(edit); actions.appendChild(del); el.appendChild(actions);
+          productsList.appendChild(el);
+        })
+      }catch(e){ productsList.innerHTML='<div class="small error">Failed to load products</div>'; console.error(e); }
+      document.getElementById('products-loading').style.display='none';
+    }
+
+    function fillProductForm(p){ document.getElementById('product-id').value=p.id; document.getElementById('product-name').value=p.name; document.getElementById('product-price').value=p.price; document.getElementById('product-submit').textContent='Update' }
+
+    document.getElementById('product-cancel').addEventListener('click', ()=>{ document.getElementById('product-form').reset(); document.getElementById('product-id').value=''; document.getElementById('product-submit').textContent='Save' })
+
+    document.getElementById('product-form').addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      const id = document.getElementById('product-id').value;
+      const name = document.getElementById('product-name').value.trim();
+      const price = parseFloat(document.getElementById('product-price').value);
+      const errorEl = document.getElementById('product-form-error'); errorEl.textContent='';
+      const loading = document.getElementById('product-form-loading'); loading.style.display='inline-block';
+      try{
+        if (!name || Number.isNaN(price)) throw {message:'Name and price required'};
+        const body = { name, price };
+        if (!id){ await apiFetch('/api/products', {method:'POST', body}); showToast('Product created') }
+        else { await apiFetch('/api/products/'+id, {method:'PUT', body}); showToast('Product updated') }
+        document.getElementById('product-form').reset(); document.getElementById('product-id').value=''; document.getElementById('product-submit').textContent='Save';
+        loadProducts();
+      }catch(err){ console.error(err); errorEl.textContent = err.data?.title || err.message || 'Request failed' }
+      loading.style.display='none';
+    })
+
+    document.getElementById('refresh-products').addEventListener('click', loadProducts);
+
+    /* Orders */
+    const ordersList = document.getElementById('orders-list');
+    async function loadOrders(){
+      document.getElementById('orders-loading').style.display='inline-block';
+      try{
+        const orders = await apiFetch('/api/orders');
+        ordersList.innerHTML='';
+        document.getElementById('orders-count').textContent='('+orders.length+')';
+        orders.forEach(o=>{
+          const el=document.createElement('div'); el.className='item';
+          el.innerHTML=`<div class="meta"><strong>${escapeHtml(o.productName || 'Order')}</strong><span class="small">User #${o.userId} • ${new Date(o.orderDate).toLocaleString()} • ${o.quantity} × ${o.totalPrice}</span></div>`;
+          ordersList.appendChild(el);
+        })
+      }catch(e){ ordersList.innerHTML='<div class="small error">Failed to load orders</div>'; console.error(e) }
+      document.getElementById('orders-loading').style.display='none'
+    }
+
+    document.getElementById('refresh-orders').addEventListener('click', loadOrders);
+
+    // Orders form submit handler
+    document.getElementById('orders-form').addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      const userId = parseInt(document.getElementById('order-userid').value, 10);
+      const productName = document.getElementById('order-productname').value.trim();
+      const quantity = parseInt(document.getElementById('order-quantity').value, 10);
+      const totalPrice = parseFloat(document.getElementById('order-totalprice').value);
+      const errEl = document.getElementById('order-form-error'); errEl.textContent='';
+      const loading = document.getElementById('order-form-loading'); loading.style.display='inline-block';
+      try{
+        if (Number.isNaN(userId) || !productName || Number.isNaN(quantity) || Number.isNaN(totalPrice)) throw {message:'All fields are required and must be valid.'};
+        const body = { userId, productName, quantity, totalPrice };
+        const created = await apiFetch('/api/orders', { method:'POST', body });
+        showToast('Order created');
+        // append created order to list
+        const el = document.createElement('div'); el.className='item';
+        el.innerHTML = `<div class="meta"><strong>${escapeHtml(created.productName)}</strong><span class="small">User #${created.userId} • ${new Date(created.orderDate).toLocaleString()} • ${created.quantity} × ${created.totalPrice}</span></div>`;
+        // prepend so newest appear on top
+        ordersList.prepend(el);
+        // update count
+        const currentCountText = document.getElementById('orders-count').textContent || '(0)';
+        const match = currentCountText.match(/\d+/);
+        const current = match ? parseInt(match[0],10) : 0;
+        document.getElementById('orders-count').textContent = '(' + (current + 1) + ')';
+        document.getElementById('orders-form').reset();
+      }catch(err){
+        console.error(err);
+        // ValidationProblem from server returns { title: 'One or more validation errors', errors: { Field: ['msg'] } }
+        if (err && err.data && err.data.errors){
+          // flatten messages
+          const messages = [];
+          for (const k in err.data.errors){ if (Object.prototype.hasOwnProperty.call(err.data.errors,k)) messages.push(...err.data.errors[k]) }
+          errEl.textContent = messages.join(' • ')
+        } else if (err && err.data && err.data.title){ errEl.textContent = err.data.title }
+        else { errEl.textContent = err.message || 'Request failed' }
+      }
+      loading.style.display='none';
+    });
+
+    /* Categories (may not exist on server) */
+    const categoriesList = document.getElementById('categories-list');
+    async function loadCategories(){ document.getElementById('categories-loading').style.display='inline-block'; categoriesList.innerHTML=''; try{ const cats = await apiFetch('/api/categories'); categoriesList.innerHTML=''; document.getElementById('categories-count').textContent='('+cats.length+')'; cats.forEach(c=>{ const el=document.createElement('div'); el.className='item'; el.innerHTML=`<div class="meta"><strong>${escapeHtml(c.name)}</strong><span class="small">#${c.id}</span></div>`; categoriesList.appendChild(el) }) }catch(e){ categoriesList.innerHTML='<div class="small muted">No categories endpoint or failed to load.</div>'; console.warn('Categories load failed', e) } document.getElementById('categories-loading').style.display='none' }
+
+    document.getElementById('category-form').addEventListener('submit', async (ev)=>{ ev.preventDefault(); const name = document.getElementById('category-name').value.trim(); const err = document.getElementById('category-form-error'); err.textContent=''; const loading = document.getElementById('category-form-loading'); loading.style.display='inline-block'; try{ if(!name) throw {message:'Name required'}; await apiFetch('/api/categories', {method:'POST', body:{name}}); showToast('Category added'); document.getElementById('category-form').reset(); loadCategories(); }catch(e){ console.error(e); err.textContent = e.data?.title || e.message || 'Request failed' } loading.style.display='none' })
+
+    /* Contact */
+    document.getElementById('contact-form').addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      const name = document.getElementById('contact-name').value.trim();
+      const email = document.getElementById('contact-email').value.trim();
+      const subject = document.getElementById('contact-subject').value.trim();
+      const message = document.getElementById('contact-message').value.trim();
+      const errEl = document.getElementById('contact-form-error'); errEl.textContent='';
+      const loading = document.getElementById('contact-form-loading'); loading.style.display='inline-block';
+      try{
+        if(!name || !email || !subject || !message) throw { message: 'All fields required' };
+        const body = { name, email, subject, message };
+        await apiFetch('/api/contact', { method: 'POST', body });
+        showToast('Message sent', 3000);
+        document.getElementById('contact-form').reset();
+      }catch(e){
+        console.error(e);
+        if (e && e.data && e.data.errors){
+          const messages = [];
+          for (const k in e.data.errors) { if (Object.prototype.hasOwnProperty.call(e.data.errors,k)) messages.push(...e.data.errors[k]); }
+          errEl.textContent = messages.join(' • ');
+        } else if (e && e.data && e.data.title) { errEl.textContent = e.data.title }
+        else { errEl.textContent = e.message || 'Request failed' }
+      }
+      loading.style.display='none';
+    });
+
+    /* Utilities */
+    function escapeHtml(s){ if(s==null) return ''; return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
+
+    /* Init */
+    (function init(){
+      loadUsers(); loadProducts(); loadOrders(); loadCategories();
+      // quick binding for Enter to submit forms when focused
+    })();
+  </script>
+</body>
+</html>

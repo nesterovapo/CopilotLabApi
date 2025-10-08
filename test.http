@@ -1,0 +1,34 @@
+### Pobierz wszystkich użytkowników
+GET http://localhost:5215/api/users
+
+### Dodaj użytkownika
+POST http://localhost:5215/api/users
+Content-Type: application/json
+
+{
+  "name": "Anna Nowak",
+  "email": "annaNowak@test.pl"
+}
+
+### Pobierz użytkownika po ID
+GET http://localhost:5215/api/users/2
+
+### Edytuj użytkownika
+PUT http://localhost:5215/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Anna Nowak",
+  "email": "anna.nowak33@test.pl"
+}
+
+### Usuń użytkownika
+DELETE http://localhost:5215/api/users/1
+
+### Dodanie nowych użytkowników do testów
+curl -X POST http://localhost:5215/api/users -H "Content-Type: application/json" -d '{"name":"Anna Kowalska","email":"anna@test.pl"}'
+curl -X POST http://localhost:5215/api/users -H "Content-Type: application/json" -d '{"name":"Jan Nowak","email":"jan@test.pl"}'
+curl -X POST http://localhost:5215/api/users -H "Content-Type: application/json" -d '{"name":"Anna Wiśniewska","email":"ania@test.pl"}'
+
+### Wyszukowanie użytkowników po imieniu
+curl "http://localhost:5215/api/users/search?name=Anna"
